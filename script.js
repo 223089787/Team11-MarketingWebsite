@@ -195,16 +195,21 @@ function updateGame(timestamp) {
         totalBounces++;
         
         if (totalBounces % 5 === 0) {
-            ball.speedX *= 1.1;
-            ball.speedY *= 1.1;
             level++;
             levelElement.textContent = level;
-            
+        
+            const baseSpeed = Math.max(2, (canvas.width / 600) * 2.5);
+            const speedMultiplier = 1 + level * 0.15; 
+        
+            ball.speedX = Math.sign(ball.speedX) * baseSpeed * speedMultiplier;
+            ball.speedY = -Math.abs(baseSpeed * speedMultiplier); 
+        
             ball.color = '#fbbf24';
             setTimeout(() => {
                 ball.color = '#a3e635';
             }, 100);
         }
+
         
         scoreElement.textContent = score;
         bouncesElement.textContent = totalBounces;
@@ -316,4 +321,5 @@ canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     return false;
 });
+
 
