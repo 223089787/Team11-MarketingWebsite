@@ -199,7 +199,7 @@ function updateGame(timestamp) {
             levelElement.textContent = level;
         
             const baseSpeed = Math.max(2, (canvas.width / 600) * 2.5);
-            const speedMultiplier = 1 + level * 0.15; 
+            const speedMultiplier = Math.pow(1.25, level - 1);
         
             ball.speedX = Math.sign(ball.speedX) * baseSpeed * speedMultiplier;
             ball.speedY = -Math.abs(baseSpeed * speedMultiplier); 
@@ -321,5 +321,6 @@ canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     return false;
 });
+
 
 
