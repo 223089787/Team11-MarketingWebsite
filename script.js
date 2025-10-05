@@ -25,7 +25,7 @@ const levelElement = document.getElementById('level');
 
 let gameRunning = false;
 let countdownActive = false;
-let countdownValue = 5;
+let countdownValue = 3;
 let score = 0;
 let highScore = localStorage.getItem('padelHighScore') || 0;
 let totalBounces = 0;
@@ -316,3 +316,4 @@ canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     return false;
 });
+
