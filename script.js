@@ -32,21 +32,7 @@ let totalBounces = 0;
 let level = 1;
 let animationId;
 let countdownInterval;
-
-function resizeCanvas() {
-    const container = canvas.parentElement;
-    const containerWidth = container.clientWidth;
-    
-    canvas.width = Math.min(600, containerWidth - 40);
-    canvas.height = 400 * (canvas.width / 600);
-    
-    if (!gameRunning && !countdownActive) {
-        ball.x = canvas.width / 2;
-        ball.y = canvas.height / 2;
-        paddle.x = canvas.width / 2 - paddle.width / 2;
-        paddle.width = Math.max(80, canvas.width / 6);
-    }
-}
+let lastTime = 0; 
 
 const paddle = {
     width: 100,
@@ -64,6 +50,21 @@ const ball = {
     color: '#a3e635'
 };
 
+function resizeCanvas() {
+    const container = canvas.parentElement;
+    const containerWidth = container.clientWidth;
+    
+    canvas.width = Math.min(600, containerWidth - 40);
+    canvas.height = 400 * (canvas.width / 600);
+    
+    if (!gameRunning && !countdownActive) {
+        ball.x = canvas.width / 2;
+        ball.y = canvas.height / 2;
+        paddle.x = canvas.width / 2 - paddle.width / 2;
+        paddle.width = Math.max(80, canvas.width / 6);
+    }
+}
+
 function initGame() {
     resizeCanvas();
     ball.x = canvas.width / 2;
@@ -71,11 +72,11 @@ function initGame() {
     paddle.x = canvas.width / 2 - paddle.width / 2;
     paddle.width = Math.max(80, canvas.width / 6);
     
-    // Slower, better scaling across devices
+
     const baseSpeed = Math.max(2, (canvas.width / 600) * 2.5);
     ball.speedX = baseSpeed;
     ball.speedY = baseSpeed;
-
+    lastTime = 0; 
 }
 
 highScoreElement.textContent = highScore;
@@ -145,19 +146,25 @@ function startCountdown() {
             clearInterval(countdownInterval);
             countdownActive = false;
             gameRunning = true;
-            updateGame();
+            requestAnimationFrame(updateGame);
         }
     }, 1000);
     
     drawCountdown();
 }
 
-function updateGame() {
+function updateGame(timestamp) {
     if (!gameRunning) return;
 
-    ball.x += ball.speedX;
-    ball.y += ball.speedY;
+    if (!lastTime) lastTime = timestamp;
+    const delta = (timestamp - lastTime) / 16.67; 
+    lastTime = timestamp;
 
+    // Apply delta-based movement
+    ball.x += ball.speedX * delta;
+    ball.y += ball.speedY * delta;
+
+    // Wall collisions
     if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
         ball.speedX = -ball.speedX;
         ball.x = Math.max(ball.radius, Math.min(canvas.width - ball.radius, ball.x));
@@ -168,9 +175,10 @@ function updateGame() {
         ball.y = ball.radius;
     }
 
-    if (ball.y + ball.radius > canvas.height - 30 && 
+    // Paddle collision
+    if (ball.y + ball.radius > canvas.height - 30 &&
         ball.y - ball.radius < canvas.height - 15 &&
-        ball.x > paddle.x && 
+        ball.x > paddle.x &&
         ball.x < paddle.x + paddle.width) {
         
         const hitPos = (ball.x - paddle.x) / paddle.width;
@@ -208,6 +216,7 @@ function updateGame() {
         }
     }
 
+    // Game over
     if (ball.y + ball.radius > canvas.height) {
         gameOver();
         return;
@@ -264,6 +273,7 @@ function startGame() {
 startBtn.addEventListener('click', startGame);
 resetBtn.addEventListener('click', resetGame);
 
+// Paddle movement
 canvas.addEventListener('mousemove', (e) => {
     if (!gameRunning && !countdownActive) return;
     
@@ -272,12 +282,7 @@ canvas.addEventListener('mousemove', (e) => {
     const mouseX = (e.clientX - rect.left) * scaleX;
     paddle.x = mouseX - paddle.width / 2;
     
-    if (paddle.x < 0) {
-        paddle.x = 0;
-    }
-    if (paddle.x + paddle.width > canvas.width) {
-        paddle.x = canvas.width - paddle.width;
-    }
+    paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, paddle.x));
 });
 
 canvas.addEventListener('touchmove', (e) => {
@@ -289,25 +294,11 @@ canvas.addEventListener('touchmove', (e) => {
     const touchX = (e.touches[0].clientX - rect.left) * scaleX;
     paddle.x = touchX - paddle.width / 2;
     
-    if (paddle.x < 0) {
-        paddle.x = 0;
-    }
-    if (paddle.x + paddle.width > canvas.width) {
-        paddle.x = canvas.width - paddle.width;
-    }
+    paddle.x = Math.max(0, Math.min(canvas.width - paddle.width, paddle.x));
 }, { passive: false });
 
-canvas.addEventListener('touchstart', (e) => {
-    if (e.target === canvas) {
-        e.preventDefault();
-    }
-}, { passive: false });
-
-canvas.addEventListener('touchend', (e) => {
-    if (e.target === canvas) {
-        e.preventDefault();
-    }
-}, { passive: false });
+canvas.addEventListener('touchstart', (e) => { if (e.target === canvas) e.preventDefault(); }, { passive: false });
+canvas.addEventListener('touchend', (e) => { if (e.target === canvas) e.preventDefault(); }, { passive: false });
 
 window.addEventListener('resize', () => {
     if (!gameRunning && !countdownActive) {
@@ -324,5 +315,4 @@ window.addEventListener('load', () => {
 canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     return false;
-
 });
