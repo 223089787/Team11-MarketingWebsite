@@ -71,9 +71,11 @@ function initGame() {
     paddle.x = canvas.width / 2 - paddle.width / 2;
     paddle.width = Math.max(80, canvas.width / 6);
     
-    const baseSpeed = Math.min(5, 3 + (canvas.width / 600) * 1);
+    // Slower, better scaling across devices
+    const baseSpeed = Math.max(2, (canvas.width / 600) * 2.5);
     ball.speedX = baseSpeed;
     ball.speedY = baseSpeed;
+
 }
 
 highScoreElement.textContent = highScore;
@@ -133,7 +135,7 @@ function drawGame() {
 
 function startCountdown() {
     countdownActive = true;
-    countdownValue = 5;
+    countdownValue = 3;
     
     countdownInterval = setInterval(() => {
         countdownValue--;
@@ -322,4 +324,5 @@ window.addEventListener('load', () => {
 canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     return false;
+
 });
